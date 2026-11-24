@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CyberRunner: Ujian TIK & Literasi Digital</title>
+    <!-- Tailwind CSS untuk UI & Responsivitas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tone.js untuk Efek Suara Edukatif -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow-x: hidden;
+            background-color: #0f172a;
+        }
+        h1, h2, h3, .font-display {
+            font-family: 'Fredoka', sans-serif;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 12px rgba(56, 189, 248, 0.5); }
+            50% { box-shadow: 0 0 24px rgba(56, 189, 248, 0.95); }
+        }
+        .checkpoint-active {
+            animation: pulseGlow 2s infinite;
+        }
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-float {
+            animation: floatSlow 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between">
+
+    <!-- HEADER & JALUR 5 TITIK MATERI (CHECKPOINTS) -->
+    <header class="w-full bg-slate-900/95 border-b border-slate-800 px-3 py-2.5 sm:px-6 z-20 shadow-lg">
+        <div class="max-w-5xl mx-auto flex flex-col gap-2">
+            <!-- Baris Atas: Judul, Identitas Pembuat, Skor, Nyawa, Tombol Catatan -->
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-400 to-indigo-600 flex items-center justify-center shadow-md">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h1 class="text-base sm:text-lg font-bold tracking-wide text-white leading-none">
+                                CyberRunner: <span class="text-sky-400">Ujian TIK</span>
+                            </h1>
+                            <span id="header-repo-badge" class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700 text-[10px] font-mono text-slate-300">
+                                <svg class="w-3 h-3 text-sky-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                                <span id="header-repo-name">cyber-runner-tik</span>
+                            </span>
+                        </div>
+                        <p id="header-author-display" class="text-[11px] text-slate-400">Oleh: Peserta Ujian TIK</p>
+                    </div>
+                </div>
+
+                <!-- Statistik Skor, Nyawa, dan Tombol Catatan -->
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <div class="flex items-center gap-1 bg-slate-800/90 border border-slate-700 px-2.5 py-1 rounded-xl" title="Nyawa / Baterai Sistem">
+                        <span id="lives-container" class="flex items-center gap-0.5 text-rose-500 text-sm sm:text-base">
+                            ❤️❤️❤️
+                        </span>
+                    </div>
+
+                    <div class="bg-slate-800/90 border border-slate-700 px-3 py-1 rounded-xl text-center">
+                        <span class="text-[10px] uppercase tracking-wider text-slate-400 block leading-none">Skor</span>
+                        <span id="score-display" class="font-display font-bold text-sm sm:text-base text-amber-400">0</span>
+                    </div>
+
+                    <div class="bg-slate-800/90 border border-slate-700 px-3 py-1 rounded-xl text-center hidden sm:block">
+                        <span class="text-[10px] uppercase tracking-wider text-slate-400 block leading-none">Kuis Benar</span>
+                        <span id="quiz-score-display" class="font-display font-bold text-sm sm:text-base text-emerald-400">0</span>
+                    </div>
+
+                    <button onclick="openNotesModal()" class="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-xl shadow-md">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                        <span>Catatan TIK</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Baris Bawah: 5 Titik Progres Materi TIK (Checkpoints) -->
+            <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-2">
+                <div class="flex items-center justify-between text-[11px] text-slate-300 mb-1.5 px-1">
+                    <span class="font-semibold text-sky-300">📍 Jalur Titik Materi Ujian TIK (Klik titik untuk lihat manfaat):</span>
+                    <span id="current-stage-label" class="text-amber-300 font-medium">Titik 1: Hardware Dasar</span>
+                </div>
+                <div class="relative flex items-center justify-between px-2 sm:px-6 py-1">
+                    <!-- Garis Latar Belakang -->
+                    <div class="absolute left-6 right-6 sm:left-10 sm:right-10 h-1.5 bg-slate-700 rounded-full z-0"></div>
+                    <!-- Garis Progres Aktif -->
+                    <div id="checkpoint-progress-bar" class="absolute left-6 sm:left-10 h-1.5 bg-gradient-to-r from-sky-400 to-emerald-400 rounded-full z-0 transition-all duration-300" style="width: 0%;"></div>
+
+                    <!-- 5 Titik Checkpoint -->
+                    <button onclick="inspectCheckpoint(0)" id="cp-dot-0" class="relative z-10 flex flex-col items-center group focus:outline-none">
+                        <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-sky-500 border-2 border-white text-white font-bold text-xs flex items-center justify-center shadow checkpoint-active transition-transform group-hover:scale-110">1</div>
+                        <span class="text-[10px] mt-1 font-medium text-sky-300">Hardware</span>
+                    </button>
+
+                    <button onclick="inspectCheckpoint(1)" id="cp-dot-1" class="relative z-10 flex flex-col items-center group focus:outline-none">
+                        <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-slate-700 border-2 border-slate-500 text-slate-300 font-bold text-xs flex items-center justify-center shadow transition-transform group-hover:scale-110">2</div>
+                        <span class="text-[10px] mt-1 font-medium text-slate-400">Software</span>
+                    </button>
+
+                    <button onclick="inspectCheckpoint(2)" id="cp-dot-2" class="relative z-10 flex flex-col items-center group focus:outline-none">
+                        <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-slate-700 border-2 border-slate-500 text-slate-300 font-bold text-xs flex items-center justify-center shadow transition-transform group-hover:scale-110">3</div>
+                        <span class="text-[10px] mt-1 font-medium text-slate-400">Shortcut</span>
+                    </button>
+
+                    <button onclick="inspectCheckpoint(3)" id="cp-dot-3" class="relative z-10 flex flex-col items-center group focus:outline-none">
+                        <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-slate-700 border-2 border-slate-500 text-slate-300 font-bold text-xs flex items-center justify-center shadow transition-transform group-hover:scale-110">4</div>
+                        <span class="text-[10px] mt-1 font-medium text-slate-400">Internet</span>
+                    </button>
+
+                    <button onclick="inspectCheckpoint(4)" id="cp-dot-4" class="relative z-10 flex flex-col items-center group focus:outline-none">
+                        <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-slate-700 border-2 border-slate-500 text-slate-300 font-bold text-xs flex items-center justify-center shadow transition-transform group-hover:scale-110">5</div>
+                        <span class="text-[10px] mt-1 font-medium text-slate-400">Etika Cyber</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- AREA UTAMA GAME CANVAS -->
+    <main class="relative flex-1 w-full max-w-5xl mx-auto flex flex-col items-center justify-center p-2 sm:p-4">
+        <div id="game-wrapper" class="relative w-full h-[360px] sm:h-[430px] rounded-2xl overflow-hidden border-2 border-slate-700/90 shadow-2xl bg-slate-950">
+            <canvas id="gameCanvas"></canvas>
+
+            <!-- Banner Notifikasi Singkat di Atas Canvas -->
+            <div id="toast-banner" class="hidden absolute top-3 left-1/2 -translate-x-1/2 bg-slate-900/95 border border-sky-400/70 text-sky-200 px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium shadow-lg z-20 whitespace-nowrap">
+                Notifikasi
+            </div>
+
+            <!-- Indikator Perisai & Kecepatan di Pojok Kiri Atas Canvas -->
+            <div class="absolute top-3 left-3 flex flex-col gap-1.5 pointer-events-none z-10">
+                <div id="shield-badge" class="hidden items-center gap-1.5 bg-cyan-500/20 border border-cyan-400 text-cyan-200 px-2.5 py-1 rounded-lg text-xs font-semibold backdrop-blur-sm">
+                    <span>🛡️ Perisai Antivirus Aktif</span>
+                </div>
+            </div>
+
+            <!-- OVERLAY LAYAR AWAL (START SCREEN + IDENTITAS PEMBUAT UNTUK GITHUB) -->
+            <div id="start-overlay" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-5 text-center z-30 overflow-y-auto">
+                <div class="max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-4 sm:p-5 shadow-2xl">
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/20 border border-sky-400/40 text-sky-300 text-[11px] font-semibold mb-1.5">
+                        <span>🚀 Proyek Game Edukasi Ujian TIK</span>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white mb-1">CyberRunner: Ujian TIK</h2>
+                    <p class="text-slate-300 text-xs mb-3 leading-relaxed">
+                        Lari kumpulkan koin data, lompati <span class="text-rose-400 font-semibold">Virus</span>, dan tabrak kotak kuis <span class="text-amber-400 font-bold">[ ? ]</span> untuk menjawab soal TIK!
+                    </p>
+
+                    <!-- FORM IDENTITAS PEMBUAT / PESERTA (UNTUK GITHUB & PENILAIAN) -->
+                    <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 mb-3 text-left">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-sky-400 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                Identitas Pembuat / Peserta Ujian
+                            </span>
+                            <span class="text-[10px] text-emerald-400 font-medium">Tersimpan Otomatis</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div>
+                                <label for="input-author-name" class="block text-[11px] text-slate-300 mb-0.5 font-medium">Nama Lengkap *</label>
+                                <input id="input-author-name" type="text" placeholder="Contoh: Budi Santoso" oninput="syncAuthorProfile()"
+                                    class="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-600 focus:border-sky-400 focus:outline-none text-xs text-white placeholder-slate-500">
+                            </div>
+                            <div>
+                                <label for="input-author-class" class="block text-[11px] text-slate-300 mb-0.5 font-medium">Kelas / Sekolah</label>
+                                <input id="input-author-class" type="text" placeholder="Contoh: IX-A / SMPN 1" oninput="syncAuthorProfile()"
+                                    class="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-600 focus:border-sky-400 focus:outline-none text-xs text-white placeholder-slate-500">
+                            </div>
+                            <div>
+                                <label for="input-author-absen" class="block text-[11px] text-slate-300 mb-0.5 font-medium">No. Absen / NIS</label>
+                                <input id="input-author-absen" type="text" placeholder="Contoh: Absen 12" oninput="syncAuthorProfile()"
+                                    class="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-600 focus:border-sky-400 focus:outline-none text-xs text-white placeholder-slate-500">
+                            </div>
+                            <div>
+                                <label for="input-github-repo" class="block text-[11px] text-slate-300 mb-0.5 font-medium">Judul Proyek / Repo GitHub</label>
+                                <input id="input-github-repo" type="text" placeholder="Contoh: game-ujian-tik" oninput="syncAuthorProfile()"
+                                    class="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-600 focus:border-sky-400 focus:outline-none text-xs font-mono text-sky-300 placeholder-slate-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 text-left text-[11px] bg-slate-800/50 p-2.5 rounded-xl border border-slate-700/70 mb-3">
+                        <div>
+                            <span class="font-bold text-sky-400 block">⬆️ Lompat (2x)</span>
+                            <span class="text-slate-300">Spasi / Tap Layar</span>
+                        </div>
+                        <div>
+                            <span class="font-bold text-indigo-400 block">⬇️ Menunduk</span>
+                            <span class="text-slate-300">Panah Bawah / S</span>
+                        </div>
+                        <div>
+                            <span class="font-bold text-amber-400 block">❓ Kotak Kuis</span>
+                            <span class="text-slate-300">+250 Poin & Perisai</span>
+                        </div>
+                    </div>
+
+                    <button onclick="startGame()" class="w-full py-3 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 active:scale-95 transition font-display font-bold text-base sm:text-lg text-white shadow-lg shadow-sky-500/25">
+                        MULAI UJIAN & LARI ▶
+                    </button>
+                </div>
+            </div>
+
+            <!-- OVERLAY GAME OVER + SERTIFIKAT IDENTITAS -->
+            <div id="gameover-overlay" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-4 text-center z-30 overflow-y-auto">
+                <div class="max-w-md w-full bg-slate-900 border border-slate-700 rounded-2xl p-4 sm:p-5 shadow-2xl">
+                    <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-[11px] font-semibold mb-1.5">
+                        <span>📋 Rekap Hasil Ujian TIK</span>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white mb-0.5">Sesi Lari Selesai!</h2>
+                    <p id="cert-student-info" class="text-sky-300 text-xs font-semibold mb-3">Peserta: Siswa TIK</p>
+
+                    <div class="grid grid-cols-3 gap-2 mb-3">
+                        <div class="bg-slate-800 p-2 rounded-xl border border-slate-700">
+                            <span class="text-[10px] text-slate-400 block">Skor Akhir</span>
+                            <span id="final-score" class="font-display font-bold text-base sm:text-lg text-amber-400">0</span>
+                        </div>
+                        <div class="bg-slate-800 p-2 rounded-xl border border-slate-700">
+                            <span class="text-[10px] text-slate-400 block">Kuis Benar</span>
+                            <span id="final-quiz" class="font-display font-bold text-base sm:text-lg text-emerald-400">0/0</span>
+                        </div>
+                        <div class="bg-slate-800 p-2 rounded-xl border border-slate-700">
+                            <span class="text-[10px] text-slate-400 block">Titik Dicapai</span>
+                            <span id="final-checkpoint" class="font-display font-bold text-base sm:text-lg text-sky-400">1/5</span>
+                        </div>
+                    </div>
+
+                    <div id="final-evaluation" class="bg-indigo-950/60 border border-indigo-500/40 rounded-xl p-2.5 text-xs text-indigo-200 mb-3">
+                        Terus pelajari titik materi TIK agar siap menghadapi ujian sekolah!
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <button onclick="copyCertificateResult()" id="copy-cert-btn" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-sky-300 font-semibold text-xs sm:text-sm transition flex items-center justify-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                            <span>Salin Rekap Nilai</span>
+                        </button>
+                        <button onclick="startGame()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 active:scale-95 transition font-display font-bold text-sm sm:text-base text-white shadow-lg">
+                            MAIN LAGI ↻
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KONTROL SENTUH UNTUK MOBILE / TABLET -->
+        <div class="w-full flex items-center justify-between gap-2 mt-3 px-1">
+            <p class="text-xs text-slate-400 hidden sm:block">
+                💡 <span class="text-slate-200 font-medium">Tips:</span> Gunakan <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-600 rounded text-[11px]">Spasi</kbd> untuk lompat & <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-600 rounded text-[11px]">Panah Bawah</kbd> untuk menunduk.
+            </p>
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-center">
+                <button onmousedown="setDucking(true)" onmouseup="setDucking(false)" ontouchstart="setDucking(true)" ontouchend="setDucking(false)"
+                    class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 border border-slate-700 font-semibold text-xs sm:text-sm text-indigo-300 shadow">
+                    ⬇️ Nunduk
+                </button>
+                <button onclick="handleJumpAction()"
+                    class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 active:scale-95 border border-sky-400/50 font-bold text-xs sm:text-sm text-white shadow">
+                    ⬆️ Lompat (2x)
+                </button>
+                <button onclick="triggerManualQuiz()"
+                    class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 active:scale-95 border border-amber-400/50 font-semibold text-xs sm:text-sm text-amber-300 shadow">
+                    ❓ Latihan Kuis
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER KREDIT PEMBUAT UNTUK REPOSITORI GITHUB -->
+    <footer class="w-full bg-slate-900/95 border-t border-slate-800 px-4 py-2 text-[11px] text-slate-400 z-20">
+        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1 text-center sm:text-left">
+            <div>
+                Dibuat oleh: <span id="footer-author-name" class="text-slate-200 font-semibold">Peserta Ujian TIK</span>
+                <span id="footer-author-meta" class="text-slate-400"></span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-slate-500">Proyek GitHub:</span>
+                <span id="footer-repo-name" class="font-mono text-sky-400">cyber-runner-tik</span>
+                <button onclick="openEditProfile()" class="text-amber-400 hover:text-amber-300 underline font-medium ml-1">
+                    Edit Nama
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL KUIS UJIAN TIK -->
+    <div id="quiz-modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="max-w-lg w-full bg-slate-900 border-2 border-amber-400/80 rounded-2xl p-5 sm:p-6 shadow-2xl">
+            <div class="flex items-center justify-between mb-3">
+                <span id="quiz-category-badge" class="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-bold">
+                    Kategori TIK
+                </span>
+                <span class="text-xs text-slate-400 font-medium">Soal Ujian TIK</span>
+            </div>
+
+            <h3 id="quiz-question-text" class="text-base sm:text-lg font-bold text-white mb-4 leading-snug">
+                Pertanyaan akan muncul di sini...
+            </h3>
+
+            <div id="quiz-options-container" class="flex flex-col gap-2.5 mb-4">
+                <!-- Pilihan jawaban dibuat lewat JS -->
+            </div>
+
+            <!-- Kotak Pembahasan Setelah Menjawab -->
+            <div id="quiz-feedback-box" class="hidden rounded-xl p-3.5 mb-4 text-xs sm:text-sm border">
+                <p id="quiz-feedback-title" class="font-bold mb-1"></p>
+                <p id="quiz-feedback-explanation" class="leading-relaxed"></p>
+            </div>
+
+            <button id="quiz-continue-btn" onclick="closeQuizAndResume()" class="hidden w-full py-3 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 font-display font-bold text-white text-sm sm:text-base shadow-lg">
+                Lanjutkan Lari ▶
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL CATATAN & MANFAAT 5 TITIK MATERI TIK -->
+    <div id="notes-modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="max-w-2xl w-full max-h-[85vh] flex flex-col bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden">
+            <div class="flex items-center justify-between px-5 py-4 bg-slate-800/90 border-b border-slate-700">
+                <div>
+                    <h3 class="text-lg font-bold text-white">📘 Rangkuman 5 Titik Materi & Manfaat TIK</h3>
+                    <p class="text-xs text-slate-400">Pelajari manfaat nyata dari setiap materi yang diujikan</p>
+                </div>
+                <button onclick="closeNotesModal()" class="w-8 h-8 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold flex items-center justify-center">
+                    ✕
+                </button>
+            </div>
+
+            <div id="notes-content-list" class="p-4 sm:p-5 overflow-y-auto flex flex-col gap-3">
+                <!-- Konten 5 titik materi diisi via JS -->
+            </div>
+
+            <div class="px-5 py-3 bg-slate-800/80 border-t border-slate-700 text-right">
+                <button onclick="closeNotesModal()" class="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-sm">
+                    Tutup & Kembali
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // 1. DATABASE BANK SOAL UJIAN TIK (SOAL DASAR YANG MUDAH & JELAS)
+        // =========================================================================
+        const TIK_QUESTIONS = [
+            {
+                category: "Hardware (Perangkat Keras)",
+                question: "Perangkat komputer yang digunakan untuk menggerakkan kursor (panah) di layar adalah...",
+                options: ["Keyboard", "Mouse", "Printer", "Speaker"],
+                answer: 1,
+                explanation: "Mouse digunakan untuk mengarahkan kursor dan melakukan klik pada objek di layar komputer."
+            },
+            {
+                category: "Hardware (Perangkat Keras)",
+                question: "Alat yang berfungsi untuk mencetak dokumen atau gambar dari komputer ke atas kertas adalah...",
+                options: ["Monitor", "Scanner", "Printer", "Webcam"],
+                answer: 2,
+                explanation: "Printer adalah perangkat keluaran (output) yang mencetak file digital ke media kertas."
+            },
+            {
+                category: "Hardware (Perangkat Keras)",
+                question: "Perangkat keras yang berbentuk papan ketik dengan tombol huruf dan angka disebut...",
+                options: ["Keyboard", "Monitor", "Flashdisk", "Headset"],
+                answer: 0,
+                explanation: "Keyboard digunakan untuk mengetik huruf, angka, dan simbol ke dalam komputer."
+            },
+            {
+                category: "Hardware (Perangkat Keras)",
+                question: "Bagian komputer yang berfungsi menampilkan gambar dan tampilan layar adalah...",
+                options: ["CPU", "Monitor", "Speaker", "Mouse"],
+                answer: 1,
+                explanation: "Monitor menampilkan visual antarmuka, video, dan teks dari komputer."
+            },
+            {
+                category: "Hardware (Perangkat Keras)",
+                question: "Alat kecil yang sering dibawa-bawa untuk menyimpan dan memindahkan data antar komputer adalah...",
+                options: ["Flashdisk", "Proyektor", "Microphone", "Router"],
+                answer: 0,
+                explanation: "Flashdisk (USB Drive) adalah media penyimpanan portabel yang praktis dibawa ke mana-mana."
+            },
+            {
+                category: "Software & Aplikasi",
+                question: "Aplikasi yang paling umum digunakan untuk mengetik surat, makalah, dan laporan adalah...",
+                options: ["Microsoft Word", "Microsoft Excel", "Paint", "Kalkulator"],
+                answer: 0,
+                explanation: "Microsoft Word adalah aplikasi pengolah kata yang dirancang untuk membuat dan mengedit dokumen teks."
+            },
+            {
+                category: "Software & Aplikasi",
+                question: "Aplikasi yang berbentuk tabel kotak-kotak dan digunakan untuk menghitung angka adalah...",
+                options: ["Microsoft PowerPoint", "Microsoft Excel", "Google Chrome", "Windows Media Player"],
+                answer: 1,
+                explanation: "Microsoft Excel adalah aplikasi pengolah angka yang memudahkan perhitungan dan pembuatan grafik."
+            },
+            {
+                category: "Software & Aplikasi",
+                question: "Aplikasi yang digunakan untuk membuat slide presentasi di depan kelas adalah...",
+                options: ["Microsoft PowerPoint", "Notepad", "WinRAR", "Antivirus"],
+                answer: 0,
+                explanation: "Microsoft PowerPoint digunakan untuk menyusun slide presentasi yang menarik."
+            },
+            {
+                category: "Shortcut Keyboard Dasar",
+                question: "Tombol pada keyboard yang digunakan untuk menghapus huruf di sebelah kiri kursor adalah...",
+                options: ["Enter", "Spacebar", "Backspace", "Shift"],
+                answer: 2,
+                explanation: "Tombol Backspace menghapus karakter satu per satu ke arah kiri."
+            },
+            {
+                category: "Shortcut Keyboard Dasar",
+                question: "Tombol keyboard yang ditekan untuk membuat paragraf baru atau pindah baris adalah...",
+                options: ["Esc", "Enter", "Tab", "Caps Lock"],
+                answer: 1,
+                explanation: "Tombol Enter berfungsi untuk berpindah ke baris baru atau mengeksekusi perintah."
+            },
+            {
+                category: "Shortcut Keyboard Dasar",
+                question: "Tombol di keyboard yang digunakan untuk membuat semua huruf menjadi KAPITAL (huruf besar) adalah...",
+                options: ["Caps Lock", "Ctrl", "Alt", "Delete"],
+                answer: 0,
+                explanation: "Saat lampu indikator Caps Lock menyala, semua huruf yang diketik akan menjadi huruf kapital."
+            },
+            {
+                category: "Shortcut Keyboard Dasar",
+                question: "Kombinasi tombol Ctrl + S pada aplikasi komputer berfungsi untuk...",
+                options: ["Menyimpan file (Save)", "Mencetak dokumen (Print)", "Menutup aplikasi", "Menyalin teks (Copy)"],
+                answer: 0,
+                explanation: "Ctrl + S adalah pintasan cepat untuk menyimpan (Save) pekerjaan agar tidak hilang."
+            },
+            {
+                category: "Internet & Dunia Digital",
+                question: "Aplikasi yang digunakan untuk membuka halaman website di internet seperti Google Chrome disebut...",
+                options: ["Browser", "Antivirus", "Sistem Operasi", "File Explorer"],
+                answer: 0,
+                explanation: "Web Browser (seperti Chrome, Edge, Firefox) adalah aplikasi untuk menjelajahi situs web di internet."
+            },
+            {
+                category: "Internet & Dunia Digital",
+                question: "Surat elektronik yang dikirim dan diterima melalui jaringan internet disebut...",
+                options: ["E-mail", "E-book", "E-money", "E-commerce"],
+                answer: 0,
+                explanation: "E-mail (Electronic Mail) adalah layanan surat elektronik berbasis internet."
+            },
+            {
+                category: "Internet & Dunia Digital",
+                question: "Jaringan nirkabel yang memungkinkan HP atau laptop terhubung ke internet tanpa kabel disebut...",
+                options: ["Wi-Fi", "Bluetooth", "HDMI", "LAN"],
+                answer: 0,
+                explanation: "Wi-Fi menghubungkan perangkat ke internet menggunakan gelombang radio tanpa kabel."
+            },
+            {
+                category: "Keamanan & Etika Digital",
+                question: "Kata rahasia yang digunakan untuk masuk ke akun email atau media sosial disebut...",
+                options: ["Username", "Password", "Status", "Profil"],
+                answer: 1,
+                explanation: "Password (kata sandi) adalah kode rahasia yang hanya boleh diketahui oleh pemilik akun."
+            },
+            {
+                category: "Keamanan & Etika Digital",
+                question: "Program jahat yang dapat merusak file atau memperlambat kinerja komputer disebut...",
+                options: ["Virus Komputer", "Wallpaper", "Driver", "Folder"],
+                answer: 0,
+                explanation: "Virus komputer adalah program berbahaya yang dapat mengganggu sistem dan merusak data."
+            },
+            {
+                category: "Keamanan & Etika Digital",
+                question: "Sikap yang baik saat berkomentar di media sosial adalah...",
+                options: ["Menggunakan bahasa yang sopan", "Menyebar berita bohong (hoaks)", "Mengejek teman", "Membagikan password akun"],
+                answer: 0,
+                explanation: "Menggunakan bahasa yang sopan dan santun adalah bagian penting dari etika digital."
+            }
+        ];
+
+        // =========================================================================
+        // 2. DATA 5 TITIK PROGRES (CHECKPOINT) & MANFAAT MATERI TIK
+        // =========================================================================
+        const CHECKPOINTS_DATA = [
+            {
+                id: 1,
+                minScore: 0,
+                shortTitle: "Hardware",
+                fullTitle: "Titik 1: Hardware (Perangkat Keras Komputer)",
+                summary: "Mengenal perangkat masukan (Keyboard, Mouse), keluaran (Monitor, Printer), dan penyimpanan (Flashdisk).",
+                benefit: "Manfaat: Kamu bisa merakit, merawat, dan memilih perangkat komputer yang tepat untuk tugas sekolah maupun kerja."
+            },
+            {
+                id: 2,
+                minScore: 300,
+                shortTitle: "Software",
+                fullTitle: "Titik 2: Software & Aplikasi Perkantoran",
+                summary: "Memahami fungsi Microsoft Word untuk mengetik, Excel untuk menghitung tabel, dan PowerPoint untuk presentasi.",
+                benefit: "Manfaat: Mempercepat pembuatan makalah, laporan keuangan sederhana, dan slide presentasi yang rapi."
+            },
+            {
+                id: 3,
+                minScore: 700,
+                shortTitle: "Shortcut",
+                fullTitle: "Titik 3: Tombol & Shortcut Keyboard Dasar",
+                summary: "Menguasai fungsi Enter, Backspace, Caps Lock, serta pintasan cepat seperti Ctrl+S, Ctrl+C, dan Ctrl+V.",
+                benefit: "Manfaat: Mengetik dan mengedit tugas menjadi dua kali lebih cepat dan terhindar dari risiko file hilang."
+            },
+            {
+                id: 4,
+                minScore: 1200,
+                shortTitle: "Internet",
+                fullTitle: "Titik 4: Internet, Browser, Wi-Fi & E-mail",
+                summary: "Cara menjelajahi informasi lewat browser, terhubung melalui Wi-Fi, dan mengirim dokumen melalui surat elektronik.",
+                benefit: "Manfaat: Memudahkan pencarian materi belajar dari seluruh dunia dan mengirim tugas secara digital."
+            },
+            {
+                id: 5,
+                minScore: 1800,
+                shortTitle: "Etika Cyber",
+                fullTitle: "Titik 5: Keamanan Akun & Etika Digital",
+                summary: "Menjaga kerahasiaan password, mewaspadai virus komputer, serta berbahasa santun di ruang digital.",
+                benefit: "Manfaat: Melindungi akun pribadi dari peretasan dan menciptakan lingkungan internet yang aman serta positif."
+            }
+        ];
+
+        // =========================================================================
+        // 3. MANAJEMEN IDENTITAS PEMBUAT / PESERTA (LOCALSTORAGE UNTUK GITHUB)
+        // =========================================================================
+        let authorProfile = {
+            name: "Peserta Ujian TIK",
+            className: "",
+            absen: "",
+            repoName: "cyber-runner-tik"
+        };
+
+        function loadAuthorProfile() {
+            try {
+                const saved = localStorage.getItem('cyberrunner_tik_profile');
+                if (saved) {
+                    authorProfile = { ...authorProfile, ...JSON.parse(saved) };
+                }
+            } catch (e) {
+                console.warn("Gagal membaca profil tersimpan:", e);
+            }
+            document.getElementById('input-author-name').value = authorProfile.name === "Peserta Ujian TIK" ? "" : authorProfile.name;
+            document.getElementById('input-author-class').value = authorProfile.className || "";
+            document.getElementById('input-author-absen').value = authorProfile.absen || "";
+            document.getElementById('input-github-repo').value = authorProfile.repoName || "cyber-runner-tik";
+            updateProfileBadges();
+        }
+
+        function syncAuthorProfile() {
+            const rawName = document.getElementById('input-author-name').value.trim();
+            const rawClass = document.getElementById('input-author-class').value.trim();
+            const rawAbsen = document.getElementById('input-author-absen').value.trim();
+            const rawRepo = document.getElementById('input-github-repo').value.trim();
+
+            authorProfile.name = rawName || "Peserta Ujian TIK";
+            authorProfile.className = rawClass;
+            authorProfile.absen = rawAbsen;
+            authorProfile.repoName = rawRepo || "cyber-runner-tik";
+
+            try {
+                localStorage.setItem('cyberrunner_tik_profile', JSON.stringify(authorProfile));
+            } catch (e) {}
+            updateProfileBadges();
+        }
+
+        function updateProfileBadges() {
+            const metaParts = [];
+            if (authorProfile.className) metaParts.push(authorProfile.className);
+            if (authorProfile.absen) metaParts.push(authorProfile.absen);
+            const metaStr = metaParts.length > 0 ? ` (${metaParts.join(" • ")})` : "";
+
+            document.getElementById('header-author-display').textContent = `Oleh: ${authorProfile.name}${metaStr}`;
+            document.getElementById('header-repo-name').textContent = authorProfile.repoName;
+            document.getElementById('footer-author-name').textContent = authorProfile.name;
+            document.getElementById('footer-author-meta').textContent = metaStr;
+            document.getElementById('footer-repo-name').textContent = authorProfile.repoName;
+        }
+
+        function openEditProfile() {
+            isGameRunning = false;
+            isPaused = true;
+            document.getElementById('gameover-overlay').classList.add('hidden');
+            document.getElementById('start-overlay').classList.remove('hidden');
+        }
+
+        // =========================================================================
+        // 4. EFEK SUARA SINTETIS DENGAN TONE.JS (TANPA FILE EKSTERNAL)
+        // =========================================================================
+        let synth = null;
+        function initAudio() {
+            if (!synth && typeof Tone !== 'undefined') {
+                Tone.start();
+                synth = new Tone.PolySynth(Tone.Synth).toDestination();
+                synth.volume.value = -10;
+            }
+        }
+
+        function playSound(type) {
+            if (!synth) return;
+            try {
+                const now = Tone.now();
+                if (type === 'jump') {
+                    synth.triggerAttackRelease("C5", "16n", now);
+                    synth.triggerAttackRelease("G5", "16n", now + 0.05);
+                } else if (type === 'coin') {
+                    synth.triggerAttackRelease("E6", "32n", now);
+                } else if (type === 'quiz_open') {
+                    synth.triggerAttackRelease(["C5", "E5", "G5"], "8n", now);
+                } else if (type === 'correct') {
+                    synth.triggerAttackRelease("C5", "16n", now);
+                    synth.triggerAttackRelease("E5", "16n", now + 0.08);
+                    synth.triggerAttackRelease("G5", "16n", now + 0.16);
+                    synth.triggerAttackRelease("C6", "8n", now + 0.24);
+                } else if (type === 'wrong' || type === 'hit') {
+                    synth.triggerAttackRelease("G3", "8n", now);
+                    synth.triggerAttackRelease("Eb3", "8n", now + 0.1);
+                }
+            } catch (e) {}
+        }
+
+        // =========================================================================
+        // 5. VARIABEL & KONFIGURASI ENGINE GAME LARI
+        // =========================================================================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let isGameRunning = false;
+        let isPaused = false;
+        let animationFrameId = null;
+        let lastTime = 0;
+
+        // Status Pemain & Skor
+        let score = 0;
+        let lives = 3;
+        let gameSpeed = 330;
+        let currentCheckpointIndex = 0;
+        let hasShield = false;
+        let quizAnsweredCount = 0;
+        let quizCorrectCount = 0;
+        let usedQuestionIndices = [];
+
+        // Fisika Lantai & Pemain
+        let groundY = 300;
+        const player = {
+            x: 80,
+            y: 240,
+            width: 44,
+            height: 54,
+            normalHeight: 54,
+            duckHeight: 30,
+            vy: 0,
+            gravity: 1750,
+            jumpForce: -640,
+            jumpCount: 0,
+            maxJumps: 2,
+            isDucking: false,
+            runCycle: 0,
+            invincibleTimer: 0
+        };
+
+        // Array Entitas Rintangan, Item, & Partikel
+        let obstacles = [];
+        let collectibles = [];
+        let particles = [];
+        let spawnTimer = 0;
+        let bgOffset1 = 0;
+        let bgOffset2 = 0;
+
+        function resizeCanvas() {
+            const wrapper = document.getElementById('game-wrapper');
+            canvas.width = wrapper.clientWidth;
+            canvas.height = wrapper.clientHeight;
+            groundY = canvas.height - 62;
+            if (!isGameRunning) {
+                player.y = groundY - player.height;
+                renderGame();
+            }
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // =========================================================================
+        // 6. KONTROL PEMAIN (KEYBOARD & TOUCH)
+        // =========================================================================
+        function handleJumpAction() {
+            if (!isGameRunning || isPaused) return;
+            initAudio();
+            if (player.jumpCount < player.maxJumps) {
+                if (player.isDucking) setDucking(false);
+                player.vy = player.jumpForce * (player.jumpCount === 1 ? 0.9 : 1);
+                player.jumpCount++;
+                playSound('jump');
+                createParticles(player.x + player.width / 2, player.y + player.height, '#38bdf8', 6);
+            }
+        }
+
+        function setDucking(duckState) {
+            if (!isGameRunning || isPaused) return;
+            if (duckState && !player.isDucking) {
+                player.isDucking = true;
+                player.height = player.duckHeight;
+                if (player.y + player.normalHeight >= groundY - 2) {
+                    player.y = groundY - player.duckHeight;
+                }
+            } else if (!duckState && player.isDucking) {
+                player.isDucking = false;
+                player.y -= (player.normalHeight - player.duckHeight);
+                player.height = player.normalHeight;
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) {
+                if (document.activeElement.tagName !== 'INPUT') {
+                    e.preventDefault();
+                    handleJumpAction();
+                }
+            } else if (['ArrowDown', 'KeyS'].includes(e.code)) {
+                if (document.activeElement.tagName !== 'INPUT') {
+                    e.preventDefault();
+                    setDucking(true);
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (['ArrowDown', 'KeyS'].includes(e.code)) {
+                setDucking(false);
+            }
+        });
+
+        canvas.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            handleJumpAction();
+        });
+
+        // =========================================================================
+        // 7. LOGIKA GAMEPLAY, SPAWN RINTANGAN, & TITIK CHECKPOINT
+        // =========================================================================
+        function startGame() {
+            syncAuthorProfile();
+            initAudio();
+            document.getElementById('start-overlay').classList.add('hidden');
+            document.getElementById('gameover-overlay').classList.add('hidden');
+            document.getElementById('quiz-modal').classList.add('hidden');
+
+            score = 0;
+            lives = 3;
+            gameSpeed = 330;
+            currentCheckpointIndex = 0;
+            hasShield = false;
+            quizAnsweredCount = 0;
+            quizCorrectCount = 0;
+            usedQuestionIndices = [];
+
+            obstacles = [];
+            collectibles = [];
+            particles = [];
+            spawnTimer = 1.0;
+
+            player.isDucking = false;
+            player.height = player.normalHeight;
+            player.y = groundY - player.height;
+            player.vy = 0;
+            player.jumpCount = 0;
+            player.invincibleTimer = 0;
+
+            updateHUD();
+            updateCheckpointUI(true);
+
+            isGameRunning = true;
+            isPaused = false;
+            lastTime = performance.now();
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function gameLoop(timestamp) {
+            if (!isGameRunning) return;
+            const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+            lastTime = timestamp;
+
+            if (!isPaused) {
+                updateGame(dt);
+                renderGame();
+            }
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function updateGame(dt) {
+            // Tambah skor jarak lari & percepatan bertahap
+            score += dt * 45;
+            gameSpeed = Math.min(580, 330 + score * 0.045);
+
+            // Parallax latar belakang
+            bgOffset1 = (bgOffset1 + gameSpeed * 0.25 * dt) % 200;
+            bgOffset2 = (bgOffset2 + gameSpeed * dt) % 120;
+
+            // Fisika Lompatan Pemain
+            player.vy += player.gravity * dt;
+            player.y += player.vy * dt;
+            if (player.y >= groundY - player.height) {
+                player.y = groundY - player.height;
+                player.vy = 0;
+                player.jumpCount = 0;
+            }
+            player.runCycle += dt * 14;
+            if (player.invincibleTimer > 0) player.invincibleTimer -= dt;
+
+            // Spawn rintangan dan item edukatif
+            spawnTimer -= dt;
+            if (spawnTimer <= 0) {
+                spawnEntityWave();
+                spawnTimer = Math.max(1.05, 1.85 - (gameSpeed - 330) / 350);
+            }
+
+            // Update Rintangan
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obs = obstacles[i];
+                obs.x -= gameSpeed * dt;
+
+                if (checkAABBCollision(player, obs, 6)) {
+                    obstacles.splice(i, 1);
+                    handleObstacleHit(obs);
+                    continue;
+                }
+                if (obs.x + obs.width < -50) {
+                    obstacles.splice(i, 1);
+                }
+            }
+
+            // Update Koin Data & Gerbang Kuis (?)
+            for (let i = collectibles.length - 1; i >= 0; i--) {
+                const item = collectibles[i];
+                item.x -= gameSpeed * dt;
+                item.bobOffset += dt * 5;
+
+                if (checkAABBCollision(player, item, 2)) {
+                    collectibles.splice(i, 1);
+                    if (item.type === 'data') {
+                        score += 25;
+                        playSound('coin');
+                        createParticles(item.x + 15, item.y + 15, '#38bdf8', 7);
+                    } else if (item.type === 'quiz') {
+                        triggerQuizModal();
+                    }
+                    continue;
+                }
+                if (item.x + item.width < -50) {
+                    collectibles.splice(i, 1);
+                }
+            }
+
+            // Update Partikel
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.life -= dt;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+
+            checkCheckpointProgress();
+            updateHUD();
+        }
+
+        function spawnEntityWave() {
+            const startX = canvas.width + 40;
+            const roll = Math.random();
+
+            if (roll < 0.36) {
+                // Gerbang Kuis Ujian TIK (?) dengan deretan koin pemandu
+                collectibles.push({
+                    type: 'quiz',
+                    x: startX,
+                    y: groundY - 78,
+                    width: 46,
+                    height: 46,
+                    bobOffset: 0
+                });
+                collectibles.push({
+                    type: 'data',
+                    x: startX - 55,
+                    y: groundY - 52,
+                    width: 28,
+                    height: 28,
+                    bobOffset: 1
+                });
+            } else if (roll < 0.62) {
+                // Rintangan Darat: Virus / Error
+                obstacles.push({
+                    type: 'virus',
+                    label: 'VIRUS',
+                    x: startX,
+                    y: groundY - 46,
+                    width: 42,
+                    height: 46
+                });
+                // Koin bonus di atas rintangan
+                collectibles.push({
+                    type: 'data',
+                    x: startX + 8,
+                    y: groundY - 115,
+                    width: 28,
+                    height: 28,
+                    bobOffset: 0
+                });
+            } else if (roll < 0.82) {
+                // Rintangan Tinggi: Error 404 (Bisa Double Jump)
+                obstacles.push({
+                    type: 'bug_stack',
+                    label: 'ERROR',
+                    x: startX,
+                    y: groundY - 68,
+                    width: 40,
+                    height: 68
+                });
+            } else {
+                // Rintangan Udara: Spam Bot (Bisa dilewati dengan Nunduk atau Lompat)
+                obstacles.push({
+                    type: 'flying_drone',
+                    label: 'SPAM BOT',
+                    x: startX,
+                    y: groundY - 76,
+                    width: 54,
+                    height: 32
+                });
+            }
+        }
+
+        function checkAABBCollision(a, b, padding = 4) {
+            return (
+                a.x + padding < b.x + b.width - padding &&
+                a.x + a.width - padding > b.x + padding &&
+                a.y + padding < b.y + b.height - padding &&
+                a.y + a.height - padding > b.y + padding
+            );
+        }
+
+        function handleObstacleHit(obs) {
+            if (player.invincibleTimer > 0) return;
+
+            if (hasShield) {
+                hasShield = false;
+                player.invincibleTimer = 1.2;
+                playSound('coin');
+                showToast("🛡️ Perisai Antivirus menahan serangan " + obs.label + "!");
+                createParticles(player.x + 20, player.y + 25, '#22d3ee', 14);
+                updateHUD();
+                return;
+            }
+
+            lives--;
+            player.invincibleTimer = 1.5;
+            playSound('hit');
+            createParticles(player.x + 20, player.y + 25, '#f43f5e', 16);
+            showToast("⚠️ Terkena " + obs.label + "! Nyawa berkurang 1.");
+            updateHUD();
+
+            if (lives <= 0) {
+                endGame();
+            }
+        }
+
+        // =========================================================================
+        // 8. SISTEM KUIS UJIAN TIK & 5 TITIK PROGRES MATERI
+        // =========================================================================
+        let activeQuestion = null;
+
+        function triggerManualQuiz() {
+            if (!isGameRunning) {
+                startGame();
+                setTimeout(() => triggerQuizModal(), 250);
+                return;
+            }
+            if (!isPaused) triggerQuizModal();
+        }
+
+        function triggerQuizModal() {
+            isPaused = true;
+            playSound('quiz_open');
+
+            if (usedQuestionIndices.length >= TIK_QUESTIONS.length) {
+                usedQuestionIndices = [];
+            }
+            let idx;
+            do {
+                idx = Math.floor(Math.random() * TIK_QUESTIONS.length);
+            } while (usedQuestionIndices.includes(idx));
+            usedQuestionIndices.push(idx);
+
+            activeQuestion = TIK_QUESTIONS[idx];
+
+            document.getElementById('quiz-category-badge').textContent = activeQuestion.category;
+            document.getElementById('quiz-question-text').textContent = activeQuestion.question;
+
+            const optionsContainer = document.getElementById('quiz-options-container');
+            optionsContainer.innerHTML = '';
+
+            const letters = ['A', 'B', 'C', 'D'];
+            activeQuestion.options.forEach((optText, i) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-100 text-xs sm:text-sm font-medium transition flex items-center gap-3";
+                btn.innerHTML = `<span class="w-6 h-6 rounded-lg bg-slate-700 text-sky-300 font-bold text-xs flex items-center justify-center shrink-0">${letters[i]}</span><span>${optText}</span>`;
+                btn.onclick = () => submitQuizAnswer(i, btn);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('quiz-feedback-box').classList.add('hidden');
+            document.getElementById('quiz-continue-btn').classList.add('hidden');
+            document.getElementById('quiz-modal').classList.remove('hidden');
+        }
+
+        function submitQuizAnswer(selectedIndex, clickedBtn) {
+            const buttons = document.getElementById('quiz-options-container').querySelectorAll('button');
+            buttons.forEach(b => b.disabled = true);
+
+            quizAnsweredCount++;
+            const isCorrect = selectedIndex === activeQuestion.answer;
+            const feedbackBox = document.getElementById('quiz-feedback-box');
+            const feedbackTitle = document.getElementById('quiz-feedback-title');
+            const feedbackExp = document.getElementById('quiz-feedback-explanation');
+
+            buttons[activeQuestion.answer].classList.remove('bg-slate-800', 'border-slate-600');
+            buttons[activeQuestion.answer].classList.add('bg-emerald-600/30', 'border-emerald-400', 'text-emerald-200');
+
+            if (isCorrect) {
+                quizCorrectCount++;
+                score += 250;
+                hasShield = true;
+                playSound('correct');
+
+                feedbackBox.className = "rounded-xl p-3.5 mb-4 text-xs sm:text-sm border bg-emerald-950/70 border-emerald-500/60 text-emerald-200";
+                feedbackTitle.textContent = "✅ Jawaban Benar! (+250 Poin & Perisai Antivirus Aktif)";
+            } else {
+                clickedBtn.classList.remove('bg-slate-800', 'border-slate-600');
+                clickedBtn.classList.add('bg-rose-600/30', 'border-rose-400', 'text-rose-200');
+                playSound('wrong');
+
+                feedbackBox.className = "rounded-xl p-3.5 mb-4 text-xs sm:text-sm border bg-rose-950/70 border-rose-500/60 text-rose-200";
+                feedbackTitle.textContent = "❌ Kurang Tepat! Perhatikan pembahasannya ya:";
+            }
+
+            feedbackExp.textContent = activeQuestion.explanation;
+            feedbackBox.classList.remove('hidden');
+            document.getElementById('quiz-continue-btn').classList.remove('hidden');
+
+            checkCheckpointProgress();
+            updateHUD();
+        }
+
+        function closeQuizAndResume() {
+            document.getElementById('quiz-modal').classList.add('hidden');
+            player.invincibleTimer = 1.0;
+            isPaused = false;
+            lastTime = performance.now();
+        }
+
+        function checkCheckpointProgress() {
+            let newIdx = 0;
+            for (let i = CHECKPOINTS_DATA.length - 1; i >= 0; i--) {
+                if (Math.floor(score) >= CHECKPOINTS_DATA[i].minScore) {
+                    newIdx = i;
+                    break;
+                }
+            }
+            if (newIdx > currentCheckpointIndex) {
+                currentCheckpointIndex = newIdx;
+                updateCheckpointUI(false);
+                showToast(`🎉 Mencapai ${CHECKPOINTS_DATA[newIdx].fullTitle}!`);
+            }
+        }
+
+        function updateCheckpointUI(silent) {
+            const cp = CHECKPOINTS_DATA[currentCheckpointIndex];
+            document.getElementById('current-stage-label').textContent = cp.fullTitle;
+            const percent = (currentCheckpointIndex / (CHECKPOINTS_DATA.length - 1)) * 84;
+            document.getElementById('checkpoint-progress-bar').style.width = `${percent}%`;
+
+            for (let i = 0; i < CHECKPOINTS_DATA.length; i++) {
+                const dotBtn = document.getElementById(`cp-dot-${i}`);
+                const circle = dotBtn.querySelector('div');
+                const label = dotBtn.querySelector('span');
+
+                if (i <= currentCheckpointIndex) {
+                    circle.className = "w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-sky-500 border-2 border-white text-white font-bold text-xs flex items-center justify-center shadow transition-transform group-hover:scale-110 " + (i === currentCheckpointIndex ? "checkpoint-active" : "");
+                    label.className = "text-[10px] mt-1 font-semibold text-sky-300";
+                } else {
+                    circle.className = "w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-slate-700 border-2 border-slate-500 text-slate-300 font-bold text-xs flex items-center justify-center shadow transition-transform group-hover:scale-110";
+                    label.className = "text-[10px] mt-1 font-medium text-slate-400";
+                }
+            }
+        }
+
+        function inspectCheckpoint(index) {
+            openNotesModal(index);
+        }
+
+        function openNotesModal(highlightIndex = -1) {
+            if (isGameRunning && !isPaused) {
+                isPaused = true;
+                document.getElementById('notes-modal').dataset.wasPlaying = "true";
+            } else {
+                document.getElementById('notes-modal').dataset.wasPlaying = "false";
+            }
+
+            const listEl = document.getElementById('notes-content-list');
+            listEl.innerHTML = '';
+
+            CHECKPOINTS_DATA.forEach((item, idx) => {
+                const unlocked = Math.floor(score) >= item.minScore || idx === 0;
+                const isSelected = idx === highlightIndex;
+
+                const card = document.createElement('div');
+                card.className = `p-4 rounded-xl border transition ${isSelected ? 'bg-sky-950/70 border-sky-400' : (unlocked ? 'bg-slate-800/90 border-slate-700' : 'bg-slate-800/40 border-slate-800')}`;
+                card.innerHTML = `
+                    <div class="flex items-center justify-between gap-2 mb-1.5">
+                        <span class="font-bold text-sm sm:text-base ${unlocked ? 'text-sky-300' : 'text-slate-400'}">${item.fullTitle}</span>
+                        <span class="text-[11px] px-2.5 py-0.5 rounded-full font-semibold ${unlocked ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-700 text-slate-400'}">
+                            ${unlocked ? 'Terbuka ✓' : 'Target: ' + item.minScore + ' Poin'}
+                        </span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-200 mb-2 leading-relaxed">${item.summary}</p>
+                    <div class="bg-indigo-950/60 border border-indigo-500/30 rounded-lg px-3 py-2 text-xs text-indigo-200 font-medium">
+                        💡 ${item.benefit}
+                    </div>
+                `;
+                listEl.appendChild(card);
+            });
+
+            document.getElementById('notes-modal').classList.remove('hidden');
+        }
+
+        function closeNotesModal() {
+            const modal = document.getElementById('notes-modal');
+            modal.classList.add('hidden');
+            if (modal.dataset.wasPlaying === "true") {
+                isPaused = false;
+                lastTime = performance.now();
+            }
+        }
+
+        function updateHUD() {
+            document.getElementById('score-display').textContent = Math.floor(score);
+            document.getElementById('quiz-score-display').textContent = `${quizCorrectCount}/${quizAnsweredCount}`;
+            document.getElementById('lives-container').textContent = lives > 0 ? '❤️'.repeat(lives) : '🖤';
+
+            const shieldBadge = document.getElementById('shield-badge');
+            if (hasShield) {
+                shieldBadge.classList.remove('hidden');
+                shieldBadge.classList.add('flex');
+            } else {
+                shieldBadge.classList.add('hidden');
+                shieldBadge.classList.remove('flex');
+            }
+        }
+
+        let toastTimeout = null;
+        function showToast(msg) {
+            const banner = document.getElementById('toast-banner');
+            banner.textContent = msg;
+            banner.classList.remove('hidden');
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                banner.classList.add('hidden');
+            }, 2600);
+        }
+
+        function endGame() {
+            isGameRunning = false;
+            const finalScoreVal = Math.floor(score);
+            document.getElementById('final-score').textContent = finalScoreVal;
+            document.getElementById('final-quiz').textContent = `${quizCorrectCount}/${quizAnsweredCount}`;
+            document.getElementById('final-checkpoint').textContent = `${currentCheckpointIndex + 1}/5`;
+
+            const meta = [authorProfile.className, authorProfile.absen].filter(Boolean).join(" • ");
+            document.getElementById('cert-student-info').textContent = `${authorProfile.name}${meta ? ' (' + meta + ')' : ''}`;
+
+            let evalText = "";
+            if (quizCorrectCount >= 4 && finalScoreVal >= 1200) {
+                evalText = "🏆 Luar Biasa! Penguasaan materi TIK kamu sangat siap untuk menghadapi ujian sekolah!";
+            } else if (quizCorrectCount >= 2) {
+                evalText = "👏 Bagus! Coba buka tombol 'Catatan TIK' untuk memperdalam 5 titik materi sebelum main lagi.";
+            } else {
+                evalText = "📘 Semangat Belajar! Tabrak kotak kuis [ ? ] saat berlari untuk melatih soal-soal TIK.";
+            }
+            document.getElementById('final-evaluation').textContent = evalText;
+            document.getElementById('gameover-overlay').classList.remove('hidden');
+        }
+
+        function copyCertificateResult() {
+            const finalScoreVal = Math.floor(score);
+            const meta = [authorProfile.className, authorProfile.absen].filter(Boolean).join(" - ");
+            const summaryText = [
+                `=== REKAP NILAI CYBERRUNNER: UJIAN TIK ===`,
+                `Nama Siswa : ${authorProfile.name}`,
+                meta ? `Kelas/Absen: ${meta}` : null,
+                `Proyek Repo: ${authorProfile.repoName}`,
+                `Skor Akhir : ${finalScoreVal} Poin`,
+                `Kuis Benar : ${quizCorrectCount} dari ${quizAnsweredCount} soal`,
+                `Titik Materi: ${currentCheckpointIndex + 1}/5 (${CHECKPOINTS_DATA[currentCheckpointIndex].shortTitle})`
+            ].filter(Boolean).join('\n');
+
+            const tempInput = document.createElement('textarea');
+            tempInput.value = summaryText;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            const btn = document.getElementById('copy-cert-btn');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `<span>✅ Rekap Berhasil Disalin!</span>`;
+            setTimeout(() => { btn.innerHTML = originalHTML; }, 2200);
+        }
+
+        // =========================================================================
+        // 9. RENDER VISUAL CANVAS (DUNIA DIGITAL CYBER-EDU YANG CERAH & HALUS)
+        // =========================================================================
+        function renderGame() {
+            const w = canvas.width;
+            const h = canvas.height;
+
+            // 1. Langit Gradien Cyber-Edu Cerah
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, groundY);
+            skyGrad.addColorStop(0, '#0f172a');
+            skyGrad.addColorStop(0.55, '#1e3a8a');
+            skyGrad.addColorStop(1, '#3b82f6');
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, w, groundY);
+
+            // 2. Grid Sirkuit & Siluet Kota Digital (Parallax)
+            ctx.strokeStyle = 'rgba(147, 197, 253, 0.12)';
+            ctx.lineWidth = 1;
+            for (let gx = -bgOffset1; gx < w; gx += 100) {
+                ctx.beginPath();
+                ctx.moveTo(gx, 0);
+                ctx.lineTo(gx, groundY);
+                ctx.stroke();
+            }
+
+            // Siluet Gedung Server & Menara Sinyal
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.42)';
+            for (let bx = -bgOffset1; bx < w + 200; bx += 200) {
+                ctx.fillRect(bx + 15, groundY - 135, 55, 135);
+                ctx.fillRect(bx + 85, groundY - 95, 45, 95);
+                ctx.fillRect(bx + 140, groundY - 165, 42, 165);
+            }
+
+            // 3. Lantai Lintasan Digital
+            const floorGrad = ctx.createLinearGradient(0, groundY, 0, h);
+            floorGrad.addColorStop(0, '#0284c7');
+            floorGrad.addColorStop(0.15, '#0f172a');
+            floorGrad.addColorStop(1, '#020617');
+            ctx.fillStyle = floorGrad;
+            ctx.fillRect(0, groundY, w, h - groundY);
+
+            // Garis Neon Permukaan Lantai
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillRect(0, groundY, w, 4);
+
+            // Marka Jalan Bergerak
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.35)';
+            for (let mx = -bgOffset2; mx < w + 120; mx += 120) {
+                ctx.fillRect(mx, groundY + 18, 55, 5);
+            }
+
+            // 4. Render Item & Gerbang Kuis (?)
+            collectibles.forEach(item => {
+                const bobY = Math.sin(item.bobOffset) * 6;
+                if (item.type === 'quiz') {
+                    // Kotak Kuis Emas Bercahaya
+                    ctx.save();
+                    ctx.shadowColor = '#fbbf24';
+                    ctx.shadowBlur = 16;
+                    ctx.fillStyle = '#f59e0b';
+                    roundRect(ctx, item.x, item.y + bobY, item.width, item.height, 12);
+                    ctx.fill();
+                    ctx.strokeStyle = '#fef3c7';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                    ctx.restore();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 26px Fredoka, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('?', item.x + item.width / 2, item.y + item.height / 2 + bobY + 1);
+                } else if (item.type === 'data') {
+                    // Koin Bit Data (1)
+                    ctx.save();
+                    ctx.fillStyle = '#38bdf8';
+                    ctx.beginPath();
+                    ctx.arc(item.x + 15, item.y + 15 + bobY, 13, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#e0f2fe';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.fillStyle = '#0f172a';
+                    ctx.font = 'bold 12px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('1', item.x + 15, item.y + 15 + bobY);
+                    ctx.restore();
+                }
+            });
+
+            // 5. Render Rintangan (Virus, Error, Spam Bot)
+            obstacles.forEach(obs => {
+                ctx.save();
+                if (obs.type === 'flying_drone') {
+                    // Drone Spam Bot Melayang
+                    ctx.fillStyle = '#e11d48';
+                    roundRect(ctx, obs.x, obs.y, obs.width, obs.height, 10);
+                    ctx.fill();
+                    ctx.strokeStyle = '#fda4af';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Baling-baling
+                    ctx.fillStyle = '#cbd5e1';
+                    ctx.fillRect(obs.x + 6, obs.y - 5, obs.width - 12, 3);
+                } else {
+                    // Rintangan Darat
+                    ctx.fillStyle = obs.type === 'virus' ? '#dc2626' : '#9333ea';
+                    roundRect(ctx, obs.x, obs.y, obs.width, obs.height, 10);
+                    ctx.fill();
+                    ctx.strokeStyle = '#fecdd3';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+
+                // Label Nama Rintangan
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 10px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(obs.label, obs.x + obs.width / 2, obs.y - 7);
+                ctx.restore();
+            });
+
+            // 6. Render Karakter Pemain (Cyber Student)
+            const blink = player.invincibleTimer > 0 && Math.floor(player.invincibleTimer * 12) % 2 === 0;
+            if (!blink) {
+                ctx.save();
+                // Perisai Siber jika aktif
+                if (hasShield) {
+                    ctx.strokeStyle = '#22d3ee';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(player.x + player.width / 2, player.y + player.height / 2, Math.max(player.width, player.height) * 0.72, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                // Badan Karakter
+                ctx.fillStyle = '#38bdf8';
+                roundRect(ctx, player.x, player.y, player.width, player.height, 12);
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+
+                // Visor Kacamata Cyber
+                ctx.fillStyle = '#0f172a';
+                roundRect(ctx, player.x + 14, player.y + 8, player.width - 18, 12, 5);
+                ctx.fill();
+                ctx.fillStyle = '#22d3ee';
+                ctx.fillRect(player.x + 18, player.y + 11, player.width - 26, 5);
+
+                // Animasi Kaki Berlari
+                const legSwing = Math.sin(player.runCycle) * 6;
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(player.x + 10, player.y + player.height - 4, 8, 6 + legSwing * 0.4);
+                ctx.fillRect(player.x + 26, player.y + player.height - 4, 8, 6 - legSwing * 0.4);
+                ctx.restore();
+            }
+
+            // 7. Render Partikel Efek
+            particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = Math.max(0, p.life * 2);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            });
+        }
+
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        }
+
+        function createParticles(x, y, color, count) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 240,
+                    vy: (Math.random() - 0.5) * 240,
+                    color: color,
+                    life: 0.45
+                });
+            }
+        }
+
+        window.onload = function () {
+            loadAuthorProfile();
+            resizeCanvas();
+            renderGame();
+        };
+    </script>
+</body>
+</html>
